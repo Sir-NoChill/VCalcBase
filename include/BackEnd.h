@@ -29,9 +29,16 @@
 // Dialects 
 #include "mlir/Dialect/LLVMIR/LLVMDialect.h"
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
-#include "mlir/Dialect/Arith/IR/Arith.h"
-#include "mlir/Dialect/SCF/IR/SCF.h"
-#include "mlir/Dialect/ControlFlow/IR/ControlFlow.h"
+#include "VCalc/Dialect.h"
+// #include "mlir/Dialect/Arith/IR/Arith.h"
+// #include "mlir/Dialect/SCF/IR/SCF.h"
+// #include "mlir/Dialect/ControlFlow/IR/ControlFlow.h"
+
+// Passes
+#include "VCalc/Passes.h"
+
+// standard
+#include <cassert>
 
 class BackEnd {
  public:
@@ -48,8 +55,4 @@ class BackEnd {
     mlir::ModuleOp module;
     std::shared_ptr<mlir::OpBuilder> builder;
     mlir::Location loc;
-
-    // LLVM 
-    llvm::LLVMContext llvm_context;
-    // std::unique_ptr<llvm::Module> llvm_module;
 };

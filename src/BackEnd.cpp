@@ -1,14 +1,4 @@
-#include <assert.h>
-
 #include "BackEnd.h"
-#include "VCalc/Dialect.h"
-#include "VCalc/Passes.h"
-#include "mlir/Conversion/ArithToLLVM/ArithToLLVM.h"
-#include "mlir/Target/LLVMIR/Dialect/Builtin/BuiltinToLLVMIRTranslation.h"
-#include "mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h"
-#include "mlir/Dialect/LLVMIR/Transforms/Passes.h"
-#include "mlir/Transforms/Passes.h"
-#include "llvm/IR/LLVMContext.h"
 
 BackEnd::BackEnd() : loc(mlir::UnknownLoc::get(&context)) {
     // Load Dialects.
@@ -23,11 +13,6 @@ BackEnd::BackEnd() : loc(mlir::UnknownLoc::get(&context)) {
     builder = std::make_shared<mlir::OpBuilder>(&context);
     module = mlir::ModuleOp::create(builder->getUnknownLoc());
     builder->setInsertionPointToStart(module.getBody());
-
-    // Some intial setup to get off the ground 
-    // setupPrintf();
-    // createGlobalString("%c\0", "charFormat");
-    // createGlobalString("%d\0", "intFormat");
 }
 
 int BackEnd::emitModule() {
@@ -39,13 +24,14 @@ int BackEnd::emitModule() {
     mlir::Block *entry = mainFunc.addEntryBlock(*builder);
     builder->setInsertionPointToStart(entry);
 
+    // Example print op
     builder->create<mlir::vcalc::PrintOp>(loc);
 
     // Return 0
     mlir::Value zero = builder->create<mlir::LLVM::ConstantOp>(loc, intType, builder->getIntegerAttr(intType, 0));
     builder->create<mlir::LLVM::ReturnOp>(builder->getUnknownLoc(), zero);    
     
-    module.dump();
+    module.dump(); // show the module before translation
 
     if (mlir::failed(mlir::verify(module))) {
         module.emitError("module failed to verify");
@@ -81,12 +67,13 @@ int BackEnd::lowerDialects() {
         llvm::errs() << "Pass pipeline failed\n";
         return 1;
     }
-    module.dump();
+    module.dump(); // show the module after translation
     return 0;
 }
 
 void BackEnd::dumpLLVM(std::ostream &os) {  
     // // Initialize LLVM targets.
+    // // If you want to generate an executable
     // llvm::InitializeNativeTarget();
     // llvm::InitializeNativeTargetAsmPrinter();
 
@@ -94,13 +81,12 @@ void BackEnd::dumpLLVM(std::ostream &os) {
     // and LLVM. Setup translation patterns to get them to LLVM IR.
     mlir::registerBuiltinDialectTranslation(this->context);
     mlir::registerLLVMDialectTranslation(this->context);
-    // mlir::LLVMConversionTarget target(context);
-    // mlir::LLVMTypeConverter converter(&context);
+
     llvm::LLVMContext llvm_context;
     auto llvm_module = mlir::translateModuleToLLVMIR(module, llvm_context);
 
     // Create llvm ostream and dump into the output file
     llvm::raw_os_ostream output(os);
-    output << *llvm_module;
+    output << *llvm_module; // Dump the fully converted LLVMIR module
 }
 

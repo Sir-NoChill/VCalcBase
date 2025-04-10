@@ -1,3 +1,4 @@
+// ANTLR
 #include "VCalcLexer.h"
 #include "VCalcParser.h"
 
@@ -6,21 +7,38 @@
 #include "tree/ParseTree.h"
 #include "tree/ParseTreeWalker.h"
 
+// Our backend
 #include "BackEnd.h"
 
+// Command line from llvm::cl
+#include "llvm/Support/CommandLine.h"
+
+// Standard
 #include <iostream>
 #include <fstream>
+#include <string>
+
+namespace cl = llvm::cl;
+
+cl::opt<std::string> OutputFilename("o", cl::desc("Specify the output filename"), cl::value_desc("filename"));
+cl::opt<std::string> InputFilename(cl::Positional, cl::desc("<input file>"), cl::Required); //cl::init("-"));
 
 int main(int argc, char **argv) {
-  if (argc < 3) {
-    std::cout << "Missing required argument.\n"
-              << "Required arguments: <input file path> <output file path>\n";
-    return 1;
-  }
+  cl::ParseCommandLineOptions(argc, argv);
+
+  // Get our outfile
+  // std::string outfile(OutputFilename.c_str());
+  std::string outfile = "";
+  if (outfile == "") outfile = "a.out";
+  std::ofstream out(outfile, std::ios::binary);
+
+  // get the input file
+  // std::string infile(InputFilename.c_str());
+  std::string infile = "test.in";
 
   // Open the file then parse and lex it.
   antlr4::ANTLRFileStream afs;
-  afs.loadFromFile(argv[1]);
+  afs.loadFromFile(infile);
   vcalc::VCalcLexer lexer(&afs);
   antlr4::CommonTokenStream tokens(&lexer);
   vcalc::VCalcParser parser(&tokens);
