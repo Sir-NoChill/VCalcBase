@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.20)
 project(VCalcBase)
 
 # Ensure tool dependencies.
@@ -18,8 +18,12 @@ find_package(Threads REQUIRED)
 # Set C++ standards.
 set(CMAKE_CXX_STANDARD 17)
 
-# Add CXX flags.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-comment")
+string(TOLOWER ${CMAKE_BUILD_TYPE} build_type)
+if (build_type STREQUAL debug)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -g -DDEBUG")
+else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -ffast-math")
+endif()
 
 # Include cmake utilities.
 include("${CMAKE_SOURCE_DIR}/cmake/symlink_to_bin.cmake")
@@ -38,6 +42,8 @@ include("${CMAKE_SOURCE_DIR}/cmake/antlr_generate.cmake")
 include_directories("${CMAKE_SOURCE_DIR}/include")
 
 # Build the source directory.
+add_subdirectory("${CMAKE_SOURCE_DIR}/include") #for tblgen
+add_subdirectory("${CMAKE_SOURCE_DIR}/lib") #for dialect
 add_subdirectory("${CMAKE_SOURCE_DIR}/src")
 
 # Add the runtime directory.

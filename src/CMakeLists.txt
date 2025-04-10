@@ -17,14 +17,32 @@ add_dependencies(vcalc antlr)
 set(LLVM_LINK_COMPONENTS Core Support)
 llvm_map_components_to_libnames(llvm_libs core)
 get_property(dialect_libs GLOBAL PROPERTY MLIR_DIALECT_LIBS)
+# get_property(conversion_libs GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
 
 # Add the MLIR, LLVM, antlr runtime and parser as libraries to link.
+# TODO add more Dialect libraries
 target_link_libraries(vcalc PRIVATE
     parser
     antlr4-runtime
     ${llvm_libs}
     ${dialect_libs}
-    )
+    # ${conversion_libs}
+    # MLIRAnalysis
+    MLIRBuiltinToLLVMIRTranslation
+    # MLIRCallInterfaces
+    # MLIRCastInterfaces
+    # MLIRExecutionEngine
+    # MLIRFunctionInterfaces
+    # MLIRIR
+    MLIRLLVMCommonConversion
+    MLIRLLVMToLLVMIRTranslation
+    # MLIRMemRefDialect
+    # MLIRParser
+    # MLIRPass
+    # MLIRSideEffectInterfaces
+    # MLIRTargetLLVMIRExport
+    # MLIRTransforms    
+)
 
 # Symbolic link our executable to the base directory so we don't have to go searching for it.
 symlink_to_bin("vcalc")

@@ -41,18 +41,15 @@ class BackEnd {
     int lowerDialects();
     void dumpLLVM(std::ostream &os);
  
- protected:
-    void setupPrintf();
-    void createGlobalString(const char *str, const char *string_name);
-      
  private:
     // MLIR
     mlir::MLIRContext context;
+    mlir::DialectRegistry registry;
     mlir::ModuleOp module;
     std::shared_ptr<mlir::OpBuilder> builder;
     mlir::Location loc;
 
     // LLVM 
     llvm::LLVMContext llvm_context;
-    std::unique_ptr<llvm::Module> llvm_module;
+    // std::unique_ptr<llvm::Module> llvm_module;
 };
