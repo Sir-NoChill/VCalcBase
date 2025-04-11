@@ -20,9 +20,13 @@ add_dependencies(vcalc antlr)
 #  call, but this way it will just dynamically adjust
 #  the linkage to all built targets (so that
 #  things like llvm::InitializeAllTargets()) works
-execute_process(COMMAND llvm-config --libfiles
-  OUTPUT_VARIABLE llvm_libs
-  OUTPUT_STRIP_TRAILING_WHITESPACE)
+if(EXISTS "${LLVM_BINARY_DIR}/llvm-config")
+  execute_process(COMMAND ${LLVM_BINARY_DIR}/llvm-config --libfiles
+    OUTPUT_VARIABLE llvm_libs
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+else()
+  message(FATAL_ERROR "llvm-config not found in ${LLVM_BINARY_DIR}")
+endif()
 string(REPLACE " " ";" llvm_libs ${llvm_libs})
 message(VERBOSE "Found LLVM libraries: ${llvm_libs}")
 
@@ -51,6 +55,9 @@ target_link_libraries(vcalc PRIVATE
     # MLIRSideEffectInterfaces
     # MLIRTargetLLVMIRExport
     # MLIRTransforms    
+    LLVMLinker
+    lldELF
+    lldCommon
 )
 
 # Symbolic link our executable to the base directory so we don't have to go searching for it.

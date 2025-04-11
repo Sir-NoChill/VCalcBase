@@ -13,6 +13,8 @@ set(MLIR_BINARY_DIR ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_MODULE_PATH "${MLIR_CMAKE_DIR}")
 list(APPEND CMAKE_MODULE_PATH "${LLVM_CMAKE_DIR}")
 
+set(LLVM_BINARY_DIR ${LLVM_DIR}/../../../bin)
+
 # Add the mlir utils
 include(TableGen)
 include(AddLLVM)
