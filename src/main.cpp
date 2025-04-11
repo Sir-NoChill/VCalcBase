@@ -11,6 +11,7 @@
 #include "BackEnd.h"
 
 // Command line from llvm::cl
+#include "llvm/CodeGen/CommandFlags.h"
 #include "llvm/Support/CommandLine.h"
 
 // Standard
@@ -20,21 +21,27 @@
 
 namespace cl = llvm::cl;
 
-cl::opt<std::string> OutputFilename("o", cl::desc("Specify the output filename"), cl::value_desc("filename"));
-cl::opt<std::string> InputFilename(cl::Positional, cl::desc("<input file>"), cl::Required); //cl::init("-"));
+// Setup CLI args
+cl::opt<std::string> OutputFilename("o", 
+    cl::desc("Specify the output filename"), 
+    cl::value_desc("filename"));
+cl::opt<std::string> InputFilename(cl::Positional, 
+    cl::desc("<input file>"), 
+    cl::Required);
 
 int main(int argc, char **argv) {
+  llvm::codegen::RegisterCodeGenFlags();
   cl::ParseCommandLineOptions(argc, argv);
 
   // Get our outfile
-  // std::string outfile(OutputFilename.c_str());
-  std::string outfile = "";
+  std::string outfile(OutputFilename.c_str());
+  // std::string outfile = "";
   if (outfile == "") outfile = "a.out";
   std::ofstream out(outfile, std::ios::binary);
 
   // get the input file
-  // std::string infile(InputFilename.c_str());
-  std::string infile = "test.in";
+  std::string infile(InputFilename.c_str());
+  // std::string infile = "test.in";
 
   // Open the file then parse and lex it.
   antlr4::ANTLRFileStream afs;
@@ -51,12 +58,15 @@ int main(int argc, char **argv) {
   // MyVisitor visitor;
   // Visit the tree
   // visitor.visit(tree);
-
-  std::ofstream os(argv[2]);
   BackEnd backend;
+  std::cout << "======== MLIR ==========" << std::endl;
   backend.emitModule();
+  std::cout << "====== LLVM MLIR =======" << std::endl;
   backend.lowerDialects();
-  backend.dumpLLVM(os);
+  std::cout << "======== LLVM ==========" << std::endl;
+  backend.emitLLVM();
+  std::cout << "======== OBJ ===========" << std::endl;
+  backend.emitBinary(outfile);
 
   return 0;
 }

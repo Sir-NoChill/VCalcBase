@@ -14,7 +14,9 @@
 #include "mlir/Target/LLVMIR/Dialect/LLVMIR/LLVMToLLVMIRTranslation.h"
 #include "mlir/Target/LLVMIR/Dialect/Builtin/BuiltinToLLVMIRTranslation.h"
 #include "mlir/Target/LLVMIR/Export.h"
+#include "llvm/IR/Module.h"
 #include "llvm/Support/raw_os_ostream.h"
+#include "llvm/IR/Verifier.h"
 
 // MLIR IR
 #include "mlir/IR/BuiltinAttributes.h"
@@ -37,8 +39,28 @@
 // Passes
 #include "VCalc/Passes.h"
 
+// Lowering to binary
+#include "llvm/CodeGen/CommandFlags.h"
+#include "llvm/TargetParser/Host.h"
+#include "llvm/IR/PassInstrumentation.h"
+#include "llvm/CodeGen/MachineModuleInfo.h"
+#include "llvm/Support/ToolOutputFile.h"
+#include "llvm/Target/TargetLoweringObjectFile.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/CodeGen/MachineBasicBlock.h"
+#include "llvm/Target/TargetMachine.h"
+#include "llvm/MC/TargetRegistry.h"
+#include "llvm/Passes/PassBuilder.h"
+#include "llvm/Support/FileSystem.h"
+
+// LLVM Libs
+#include "llvm/ADT/StringRef.h"
+
 // standard
 #include <cassert>
+#include <iostream>
+#include <memory>
 
 class BackEnd {
  public:
@@ -46,7 +68,8 @@ class BackEnd {
 
     int emitModule();
     int lowerDialects();
-    void dumpLLVM(std::ostream &os);
+    int emitLLVM();
+    int emitBinary(llvm::StringRef filename);
  
  private:
     // MLIR
