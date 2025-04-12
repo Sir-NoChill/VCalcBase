@@ -2,6 +2,8 @@
 #include "llvm/CodeGen/CommandFlags.h"
 #include "llvm/Support/CodeGen.h"
 #include <optional>
+#include "lld/Common/Driver.h"
+LLD_HAS_DRIVER(elf)
 
 BackEnd::BackEnd() : loc(mlir::UnknownLoc::get(&context)) {
     // Load Dialects.
@@ -90,7 +92,7 @@ int BackEnd::emitLLVM() {
     // return llvm_module;
 }
 
-int BackEnd::emitBinary(llvm::StringRef filename) {
+int BackEnd::emitBinary(const char* filename) {
   if (!module) std::cerr << "No llvm_module when lowering to binary" << std::endl;
 
   llvm::LLVMContext llvm_context;
@@ -162,7 +164,8 @@ int BackEnd::emitBinary(llvm::StringRef filename) {
   //
   std::error_code EC;
   llvm::raw_fd_ostream errstream("test.err", EC);
-  auto out = std::make_unique<llvm::ToolOutputFile>(filename, EC,
+  std::string tmpname = "test.o"; // std::tmpnam(nullptr);
+  auto out = std::make_unique<llvm::ToolOutputFile>(tmpname, EC,
                                                llvm::sys::fs::OF_None);
   llvm::raw_pwrite_stream *outstream = &out->os();
 
@@ -191,6 +194,18 @@ int BackEnd::emitBinary(llvm::StringRef filename) {
   pm.run(*llvm_module);
 
   out->keep();
-  return 0;
+
+  std::vector<const char *> args{
+    "ld.lld", //"-m elf_x86_64", 
+      "-pie", "-dynamic-linker", 
+      "-o", filename, tmpname.c_str(), 
+      "/lib/Scrt1.o", "-L/lib", "-lc"};
+  // ld.lld -m elf_x86_64 -pie -dynamic-linker -o a.out test.o /lib/Scrt1.o -L/lib
+  lld::Result s = lld::lldMain(args, llvm::outs(), llvm::errs(),
+                               {{lld::Gnu, &lld::elf::link}});
+  return !s.retCode && s.canRunAgain;
+
+  // lld::lldMain();
+  // return 0;
 }
 

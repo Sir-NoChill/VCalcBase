@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
   std::cout << "======== LLVM ==========" << std::endl;
   backend.emitLLVM();
   std::cout << "======== OBJ ===========" << std::endl;
-  backend.emitBinary(outfile);
+  backend.emitBinary(outfile.c_str());
 
   return 0;
 }

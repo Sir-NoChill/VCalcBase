@@ -69,7 +69,7 @@ class BackEnd {
     int emitModule();
     int lowerDialects();
     int emitLLVM();
-    int emitBinary(llvm::StringRef filename);
+    int emitBinary(const char* filename);
  
  private:
     // MLIR
