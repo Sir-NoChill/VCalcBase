@@ -61,6 +61,7 @@
 #include <cassert>
 #include <iostream>
 #include <memory>
+#include <optional>
 
 class BackEnd {
  public:

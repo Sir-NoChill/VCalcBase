@@ -1,9 +1,4 @@
 #include "BackEnd.h"
-#include "llvm/CodeGen/CommandFlags.h"
-#include "llvm/Support/CodeGen.h"
-#include <optional>
-#include "lld/Common/Driver.h"
-LLD_HAS_DRIVER(elf)
 
 BackEnd::BackEnd() : loc(mlir::UnknownLoc::get(&context)) {
     // Load Dialects.
@@ -164,8 +159,8 @@ int BackEnd::emitBinary(const char* filename) {
   //
   std::error_code EC;
   llvm::raw_fd_ostream errstream("test.err", EC);
-  std::string tmpname = "test.o"; // std::tmpnam(nullptr);
-  auto out = std::make_unique<llvm::ToolOutputFile>(tmpname, EC,
+  std::string outfile = filename; // std::tmpnam(nullptr);
+  auto out = std::make_unique<llvm::ToolOutputFile>(outfile, EC,
                                                llvm::sys::fs::OF_None);
   llvm::raw_pwrite_stream *outstream = &out->os();
 
@@ -195,17 +190,6 @@ int BackEnd::emitBinary(const char* filename) {
 
   out->keep();
 
-  std::vector<const char *> args{
-    "ld.lld", //"-m elf_x86_64", 
-      "-pie", "-dynamic-linker", 
-      "-o", filename, tmpname.c_str(), 
-      "/lib/Scrt1.o", "-L/lib", "-lc"};
-  // ld.lld -m elf_x86_64 -pie -dynamic-linker -o a.out test.o /lib/Scrt1.o -L/lib
-  lld::Result s = lld::lldMain(args, llvm::outs(), llvm::errs(),
-                               {{lld::Gnu, &lld::elf::link}});
-  return !s.retCode && s.canRunAgain;
-
-  // lld::lldMain();
-  // return 0;
+  return 0;
 }
 
