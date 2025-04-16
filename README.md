@@ -4,6 +4,7 @@ The base cmake setup for VCalc assignment.
 Author: Braedy Kuzma (braedy@ualberta.ca)  
 Updated by: Deric Cheung (dacheung@ualberta.ca)
 Updated by: Quinn Pham (qpham@ualberta.ca)
+Updated by: Aytron Chilibeck (achilibe@ualberta.ca)
 
 # Usage
 ## Installing MLIR
