@@ -59,7 +59,7 @@ int BackEnd::lowerDialects() {
     // Finalize the conversion to LLVM dialect
     // pm.addPass(mlir::createReconcileUnrealizedCastsPass());
     
-    pm.addPass(mlir::vcalc::createLowerToLLVMPass());
+    pm.addPass(mlir::vcalc::createVCalcToMLIR());
 
 
     // Run the passes

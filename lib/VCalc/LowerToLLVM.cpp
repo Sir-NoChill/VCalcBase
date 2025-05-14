@@ -1,3 +1,4 @@
+#include "VCalc/Ops.h"
 #include "VCalc/Passes.h"
 #include "VCalc/Dialect.h"
 #include "mlir/Conversion/LLVMCommon/ConversionTarget.h"
@@ -24,29 +25,40 @@ using namespace mlir;
 //===----------------------------------------------------------------------===//
 
 namespace {
-// Lower the vcalc.print op to a simple printf
-class PrintOpLowering : public ConversionPattern {
+class VCalcTypeConverter : public TypeConverter {
   public:
-    explicit PrintOpLowering(MLIRContext *context)
-      : ConversionPattern(vcalc::PrintOp::getOperationName(), 1, context) {}
-
-    LogicalResult matchAndRewrite(Operation *op, ArrayRef<Value>, ConversionPatternRewriter &rewriter) const override {
-      auto *context = rewriter.getContext();
-      auto loc = op->getLoc();
-
-      ModuleOp parentModule = op->getParentOfType<ModuleOp>();
-
-      auto printRef = getOrInsertPrintf(rewriter, parentModule);
-      Value formatSpecifier = getOrCreateGlobalString(
-	  loc, rewriter, "fmt_spec", StringRef("Hello 429!\n\0", 12), parentModule);
-
-      rewriter.create<LLVM::CallOp>(
-	loc, getPrintfType(context), printRef,
-	ArrayRef<Value>({formatSpecifier})
-      );
-      rewriter.eraseOp(op);
-      return success();
+    // The identity type conversion
+    // TODO add more as required
+    // https://mlir.llvm.org/docs/DialectConversion/#type-conversion
+    VCalcTypeConverter(MLIRContext *context) {
+      addConversion([](Type type) {return type; });
     }
+};
+}
+
+namespace {
+// Lower the vcalc.print op to a simple printf
+class PrintOpLowering : public OpConversionPattern<mlir::vcalc::PrintOp> {
+  using OpConversionPattern<mlir::vcalc::PrintOp>::OpConversionPattern;
+
+  LogicalResult matchAndRewrite(mlir::vcalc::PrintOp op, OpAdaptor, 
+      ConversionPatternRewriter &rewriter) const override {
+    auto *context = rewriter.getContext();
+    auto loc = op->getLoc();
+
+    ModuleOp parentModule = op->getParentOfType<ModuleOp>();
+
+    auto printRef = getOrInsertPrintf(rewriter, parentModule);
+    Value formatSpecifier = getOrCreateGlobalString(
+        loc, rewriter, "fmt_spec", StringRef("Hello 429!\n\0", 12), parentModule);
+
+    rewriter.create<LLVM::CallOp>(
+      loc, getPrintfType(context), printRef,
+      ArrayRef<Value>({formatSpecifier})
+    );
+    rewriter.eraseOp(op);
+    return success();
+  }
 
   private:
     // Create the function declaration for printf
@@ -96,41 +108,40 @@ class PrintOpLowering : public ConversionPattern {
 // VCalcToLLVMLoweringPass
 //===----------------------------------------------------------------------===//
 
-namespace {
-// CRTP pass definition
-struct VCalcToLLVMLoweringPass : public PassWrapper<VCalcToLLVMLoweringPass, OperationPass<ModuleOp>> {
-  MLIR_DEFINE_EXPLICIT_INTERNAL_INLINE_TYPE_ID(VCalcToLLVMLoweringPass)
-  StringRef getArgument() const override { return "vcalc-to-llvm"; }
+namespace mlir {
+namespace vcalc {
 
-  void getDependentDialects(DialectRegistry &registry) const override {
-    registry.insert<LLVM::LLVMDialect>();
+/// This defines the whole pass from tablegen
+#define GEN_PASS_DEF_VCALCTOMLIR
+#include "VCalc/Passes.h.inc"
+
+// Now implement the pass
+struct VCalcToStandard : impl::VCalcToMLIRBase<VCalcToStandard> {
+  void runOnOperation() override {
+    MLIRContext *context = &getContext();
+    auto* module = getOperation();
+  
+    // define the conversion target
+    ConversionTarget target(*context);
+    target.addLegalOp<ModuleOp>();
+    target.addIllegalDialect<VCalcDialect>();
+    target.addLegalDialect<LLVM::LLVMDialect>();
+
+    // Get the rewrite pattern set
+    // If you need to lower other dialects, you can add them here
+    RewritePatternSet patterns(context);
+    VCalcTypeConverter vcalcConverter(context);
+  
+    patterns.add<PrintOpLowering>(vcalcConverter, context);
+
+    // populateAffineToStdConversionPatterns(patterns);
+    // populateSCFToControlFlowConversionPatterns(patterns);
+    // ...
+    
+    // since we want to fully convert to LLVM, we can declare a full rewrite
+    if (failed(applyPartialConversion(module, target, std::move(patterns))))
+      signalPassFailure();
   }
-
-  void runOnOperation() final;
 };
 }
-
-void VCalcToLLVMLoweringPass::runOnOperation() {
-  // define the conversion target
-  LLVMConversionTarget target(getContext());
-  target.addLegalOp<ModuleOp>();
-
-  // Get the rewrite pattern set
-  // If you need to lower other dialects, you can add them here
-  RewritePatternSet patterns(&getContext());
-
-  // populateAffineToStdConversionPatterns(patterns);
-  // populateSCFToControlFlowConversionPatterns(patterns);
-  // ...
-  
-  patterns.add<PrintOpLowering>(&getContext());
-
-  // since we want to fully convert to LLVM, we can declare a full rewrite
-  auto module = getOperation();
-  if (failed(applyFullConversion(module, target, std::move(patterns))))
-    signalPassFailure();
-}
-
-std::unique_ptr<mlir::Pass> mlir::vcalc::createLowerToLLVMPass() {
-  return std::make_unique<VCalcToLLVMLoweringPass>();
 }

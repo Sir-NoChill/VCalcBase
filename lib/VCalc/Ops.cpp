@@ -22,16 +22,7 @@ using namespace mlir::vcalc;
 
 #include "VCalc/Dialect.cpp.inc"
 
-//===----------------------------------------------------------------------===//
-// Toy dialect
-//===----------------------------------------------------------------------===//
-
-void VCalcDialect::initialize() {
-  addOperations<
-#define GET_OP_LIST
-#include "VCalc/Ops.cpp.inc"
-      >();
-}
+/// TODO Add any additional op-related code here
 
 #define GET_OP_CLASSES
 #include "VCalc/Ops.cpp.inc"

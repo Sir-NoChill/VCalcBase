@@ -55,9 +55,9 @@ target_link_libraries(vcalc PRIVATE
     # MLIRSideEffectInterfaces
     # MLIRTargetLLVMIRExport
     # MLIRTransforms    
-    LLVMLinker
-    lldELF
-    lldCommon
+    # LLVMLinker
+    # lldELF
+    # lldCommon
 )
 
 # Symbolic link our executable to the base directory so we don't have to go searching for it.

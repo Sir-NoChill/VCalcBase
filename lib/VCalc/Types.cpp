@@ -1,4 +1,4 @@
-//===- VCalcDialect.h - Standalone dialect -----------------*- C++ -*-===//
+//===- VCalcTypes.cpp - Standalone dialect -----------------*- C++ -*-===//
 //
 // This file is licensed under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -9,14 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef VCALC_STANDALONEDIALECT_H
-#define VCALC_STANDALONEDIALECT_H
+#define GET_TYPEDEF_CLASSES
+#include "VCalc/Types.cpp.inc"
 
-#include "VCalc/Ops.h"
-#include "VCalc/Types.h"
-
-/// Include the auto-generated header file containing the declaration of the vcalc
-/// dialect.
-#include "VCalc/Dialect.h.inc"
-
-#endif // VCALC_STANDALONEDIALECT_H
+// TODO Add any extra type-related code here (ex. composite type definitions)

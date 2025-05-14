@@ -1,5 +1,7 @@
 add_mlir_dialect_library(MLIRVCalc
+  Dialect.cpp
   Ops.cpp
+  Types.cpp
   LowerToLLVM.cpp
 
   ADDITIONAL_HEADER_DIRS
@@ -7,7 +9,9 @@ add_mlir_dialect_library(MLIRVCalc
 
   DEPENDS
   VCalcOpsIncGen
+  VCalcPassesIncGen
 
+  # If you need more included MLIR things, add them here
   LINK_LIBS PUBLIC
   MLIRIR
   MLIRInferTypeOpInterface

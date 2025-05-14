@@ -13,11 +13,9 @@
 #ifndef VCALC_PASSES_H
 #define VCALC_PASSES_H
 
-#include <memory>
+#include "mlir/Pass/Pass.h"
 
 namespace mlir {
-class Pass;
-
 namespace vcalc {
 /// Create a pass for lowering to operations in the `Affine` and `Std` dialects,
 /// for a subset of the VCalc IR (e.g. vectorAdd).
@@ -25,7 +23,12 @@ namespace vcalc {
 
 /// Create a pass for lowering operations the remaining `VCalc` operations, as
 /// well as `Affine` and `Std`, to the LLVM dialect for codegen.
-std::unique_ptr<mlir::Pass> createLowerToLLVMPass();
+
+#define GEN_PASS_DECL
+#include "VCalc/Passes.h.inc"
+
+#define GEN_PASS_REGISTRATION
+#include "VCalc/Passes.h.inc"
 
 } // namespace vcalc
 } // namespace mlir
